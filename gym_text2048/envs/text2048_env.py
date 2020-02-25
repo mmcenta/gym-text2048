@@ -78,17 +78,29 @@ class Text2048Env(gym.Env):
                     reward += (2 ** view[i][col])
         return reward
 
+    def _is_done(self):
+        grid = lambda n: product(*tee(range(n)))
+        for i, j in grid(self.size):
+            if (self.board[i][j] == 0 or
+                any([self.board[i][j] == self.board[i + di][j + dj]
+                     for (di, dj) in grid(1)
+                     if i + di < self.size and j + dj < self.size])):
+                return False
+        return True
+
     def step(self, action):
         assert self.action_space.contains(action)
 
         view = np.rot90(self.board, k=action)
         changed = self.compress(view)
-        reward = self._mergeE(view)
-        self.compress(view)
-        done = (not changed and score == 0)
+        reward = self._merge(view)
+        changed = (changed or score > 0)
+        if changed:
+            self._compress(view)
+            self._add_random_tile()
 
         self.score += reward
-        self._add_random_tile()
+        done = self._is_done()
 
         return np.ravel(self.board), reward, done, {'score': self.score}
 

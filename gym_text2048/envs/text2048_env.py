@@ -79,11 +79,10 @@ class Text2048Env(gym.Env):
         return reward
 
     def _is_done(self):
-        grid = lambda n: product(*tee(range(n)))
-        for i, j in grid(self.size):
+        for i, j in product(*tee(range(self.size))):
             if (self.board[i][j] == 0 or
                 any([self.board[i][j] == self.board[i + di][j + dj]
-                     for (di, dj) in grid(1)
+                     for (di, dj) in ((-1, 0), (0, -1), (0, 1), (1, 0))
                      if i + di < self.size and j + dj < self.size])):
                 return False
         return True

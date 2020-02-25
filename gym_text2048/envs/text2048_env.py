@@ -93,7 +93,7 @@ class Text2048Env(gym.Env):
         view = np.rot90(self.board, k=action)
         changed = self.compress(view)
         reward = self._merge(view)
-        changed = (changed or score > 0)
+        changed = (changed or reward > 0)
         if changed:
             self._compress(view)
             self._add_random_tile()

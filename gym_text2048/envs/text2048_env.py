@@ -61,7 +61,7 @@ class Text2048Env(gym.Env):
             for i in range(self.size):
                 if view[i][j] != 0:
                     view[count][j], view[i][j] = view[i][j], view[count][j]
-                    if count != j:
+                    if count != i:
                         changed = True
                     count += 1
         return changed

@@ -37,7 +37,7 @@ class Text2048Env(gym.Env):
         self.size = size
 
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.MultiDiscrete([32] * size * size)
+        self.observation_space = spaces.MultiDiscrete([size * size + 2] * size * size)
 
         self.seed()
         self.reset()

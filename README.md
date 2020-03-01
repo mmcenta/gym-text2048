@@ -17,7 +17,7 @@ The Text2048 task models the standard game. The rewards are the sum of the merge
 
 ### Text2048WithHeuristic
 
-Similar to Text2048, but instead of the original rewards, it instead uses a heuristic reward. See the Heuristic Reward subsection for more information.
+Similar to Text2048, but instead of the original rewards, it instead uses a heuristic reward. See the Heuristics subsection for more information.
 
 ### Text2048Capped
 
@@ -25,7 +25,18 @@ Similar to Text2048, but it stops the game once the maximum tile of the board ha
 
 ### Text2048CappedWithHeuristic
 
-This enviroment implements the changes of Text2048WithHeuristic and Text2048Capped into a single task.
+This enviroment implements both the custom reward of Text2048WithHeuristic and the end condition of Text2048Capped in the same task.
+
+## Heuristics
+
+A custom reward function is provided on some environments. It is based on the state value heuristics used in [the best 2048 A.I. I could find](https://github.com/nneonneo/2048-ai). The value assigned to a state is a weighted sum of four terms:
+
+* **Empty**: this term is equal to the number of empty of tiles on the board. The only parameter of this term is the weight;
+* **Merges**: this term is equal to the number of possible merges on the board. The only parameter of this term is the weight;
+* **Monotonicty**: this term rewards rows or columns for having a (eventually partial) monotonic order. Each time it finds a correctly ordered neighbouring tiles, a reward of B<sup>x</sup> - S<sup>y</sup> is given, with B, S and x being the bigger logarithm, the smaller logarithm and the monotonicity exponent parameter, respectively. The maximum of both directions for each line is its value and the board's values is the sum over all rows and columns. It has two parameters: the weight and the exponent.
+* **Sum**: this term is the sum of the logarithm of all tiles elevated to a constant power, which is a parameter. It has two parameters: the weight and the exponent.
+
+The reward at a given time step is the difference between the new state value and the previous state value.
 
 ## Examples
 

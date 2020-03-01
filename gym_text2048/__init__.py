@@ -8,3 +8,18 @@ register(
     entry_point='gym_text2048.envs:Text2048Env',
     nondeterministic=True,
 )
+register(
+    id='Text2048Capped-v0',
+    entry_point='gym_text2048.envs:Text2048CappedEnv',
+    nondeterministic=True,
+)
+register(
+    id='Text2048WithHeuristic-v0',
+    entry_point='gym_text2048.envs:Text2048WithHeuristicEnv',
+    nondeterministic=True,
+)
+register(
+    id='Text2048CappedWithHeuristic-v0',
+    entry_point='gym_text2048.envs:Text2048CappedWithHeuristicEnv',
+    nondeterministic=True,
+)

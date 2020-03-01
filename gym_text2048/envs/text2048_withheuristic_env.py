@@ -53,7 +53,9 @@ class Text2048WithHeuristicEnv(Text2048Env):
                 else:
                     right += (pow(line[i], self.monotonicity_exp) -
                                            pow(line[i-1], self.monotonicity_exp))
-            return min(left, right)
+            # NOTE: original code from github.com/nneonneo/2048-ai/ uses min
+            # instead of max. This doesn't seem to reward the correct behaviour
+            return max(left, right)
 
         monotonicity = sum([score_monotonicity(self.board[i]) for i in range(self.size)])
         monotonicity += sum([score_monotonicity(self.board[:][j]) for j in range(self.size)])

@@ -1,5 +1,6 @@
 import logging
 
+from gym import spaces
 import numpy as np
 
 from gym_text2048.envs import Text2048WithHeuristicEnv
@@ -12,6 +13,7 @@ class Text2048CappedWithHeuristicEnv(Text2048WithHeuristicEnv):
     def __init__(self, size=4, goal_tile=11):
         super(Text2048CappedWithHeuristicEnv, self).__init__(size=size)
         self.goal_tile = goal_tile
+        self.observation_space = spaces.MultiDiscrete([goal_tile] * size * size)
 
     def _is_done(self):
         max_tile = np.max(self.board)

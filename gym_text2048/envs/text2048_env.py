@@ -30,28 +30,12 @@ TILE_FORMAT = {
     11: ('yellow', True),
 }
 
+
 class Text2048Env(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, size=4, use_heuristic=False, merge_weight=0.,
-                 empty_weight=0., monotonicity_params=None, sum_params=None):
-
-        def get_params(params):
-            if params is not None:
-                if isinstance(params, (int, float)):
-                    params =  {"weight": params, "exp": 1.}
-                if isinstance(params, (list, tuple, np.ndarray)):
-                    assert len(params) == 2
-                    params = {"weight": params[0], "exp": params[1]}
-            return params
-
+    def __init__(self, size=4):
         self.size = size
-        self.use_heuristic = use_heuristic
-        if use_heuristic:
-            self.merge_weight = merge_weight
-            self.empty_weight = empty_weight
-            self.monotonicity_params = get_params(monotonicity_params)
-            self.sum_params = get_params(sum_params)
 
         self.action_space = spaces.Discrete(4)
         self.observation_space = spaces.MultiDiscrete([size * size + 2] * size * size)
@@ -105,82 +89,39 @@ class Text2048Env(gym.Env):
                 return False
         return True
 
-    def _calculate_state_value(self):
-        tile_sum = np.sum(np.power(self.board, self.sum_params["exp"]))
-        empty = self.size * self.size - np.count_nonzero(self.board)
-
-        def count_merges(line):
-            count, merge, prev = 0, 0, 0
-            for value in line:
-                if value != 0:
-                    if value == prev:
-                        count += 1
-                    elif count > 1:
-                        merge += 1 + count
-                        count = 0
-            return merges
-
-        # Maybe try taking the maximum of the lines and columns instead
-        merges = sum([count_merges(self.board[i]) for i in range(self.size)])
-        merges += sum([count_merges(self.board[:][j]) for j in range(self.size)])
-
-        def score_monotonicity(line):
-            left, right = 0., 0.
-            for i in range(self.size):
-                if line[i-1] > line[i]:
-                    left += (pow(line[i-1], self.monotonicity_params["exp"]) -
-                             pow(line[i], self.monotonicity_params["exp"]))
-                else:
-                    right += (pow(line[i], self.monotonicity_params["exp"]) -
-                                           pow(line[i-1], self.monotonicity_params["exp"]))
-            return min(left, right)
-
-        monotonicity = sum([score_monotonicity(self.board[i]) for i in range(self.size)])
-        monotonicity += sum([score_monotonicity(self.board[:][j]) for j in range(self.size)])
-
-        return (self.empty_weight * empty +
-                self.merge_weight * merges -
-                self.monotonicity_params["weight"] * monotonicity -
-                self.sum_params["weight"] * tile_sum)
-
+    def _get_reward(self):
+        return self.last_action_score
 
     def step(self, action):
         assert self.action_space.contains(action)
 
         view = np.rot90(self.board, k=action)
         changed = self._compress(view)
-        reward = self._merge(view)
-        if changed or reward> 0:
+        action_score = self._merge(view)
+        if changed or action_score > 0:
             self._compress(view)
             self._add_random_tile()
 
-        # Overwrite standard reward if using heuristics
-        if self.use_heuristic:
-            curr_value = self._calculate_state_value()
-            reward = curr_value - self.last_state_value
-            self.last_state_value = curr_value
+        self.last_action = action
+        self.last_action_score = action_score
+        self.score += action_score
 
-        done = self._is_done()
-        self.lastaction = action
-        self.score += reward
-
-        return np.ravel(self.board), reward, done, {'score': self.score}
+        return np.ravel(self.board), self._get_reward(), self._is_done(), {'score': self.score}
 
     def reset(self):
         self.score = 0
         self.last_action = None
+        self.last_action_score = 0
         self.board = np.zeros((self.size, self.size), dtype=np.int8)
         self._add_random_tile()
         self._add_random_tile()
-        if self.use_heuristic:
-            self.last_state_value = self._calculate_state_value()
         return np.ravel(self.board)
 
     def render(self, mode='human'):
         out = StringIO if mode == 'ansi' else sys.stdout
 
-        if self.lastaction is not None:
-            out.write("  ({})\n".format(["Up", "Right", "Down", "Left"][self.lastaction]))
+        if self.last_action is not None:
+            out.write("  ({})\n".format(["Up", "Right", "Down", "Left"][self.last_action]))
 
         def tile_to_symbol(tile):
             if tile == 0:

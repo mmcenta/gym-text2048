@@ -43,7 +43,7 @@ The reward at a given time step is the difference between the new state value an
 This repository includes the following examples under the directory `/examples`:
 
 * `play.py` which allows the user to play the game using the WASD keys;
-* `random.py` which implements a random agent.
+* `random_agent.py` which implements a random agent.
 
 ## Installation
 

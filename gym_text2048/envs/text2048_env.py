@@ -119,7 +119,8 @@ class Text2048Env(gym.Env):
             self._compress(view)
             self._add_random_tile()
         else:
-            return self._get_board(), -16, self.np_random.rand() < .01, {'score': self.score}
+            self._invalid_count += 1
+            return self._get_board(), -32, self._invalid_count >= 10, {'score': self.score}
 
         self.last_action = action
         self.last_action_score = action_score
@@ -134,6 +135,7 @@ class Text2048Env(gym.Env):
         self.board = np.zeros((self.size, self.size), dtype=np.int8)
         self._add_random_tile()
         self._add_random_tile()
+        self._invalid_count = 0
         return self._get_board()
 
     def render(self, mode='human'):

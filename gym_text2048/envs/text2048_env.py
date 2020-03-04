@@ -9,6 +9,8 @@ from gym.utils import colorize, seeding
 import numpy as np
 from six import StringIO, b
 
+import tensorflow as tf
+
 logger = logging.getLogger(__name__)
 
 UP = 0
@@ -34,11 +36,18 @@ TILE_FORMAT = {
 class Text2048Env(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, size=4):
+    def __init__(self, size=4, one_hot=False, cnn=False):
         self.size = size
+        self._one_hot = one_hot
+        self._cnn = cnn
 
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.MultiDiscrete([size * size + 2] * size * size)
+        if one_hot:
+            self.observation_space = spaces.MultiBinary(size*size*16)
+        elif cnn:
+            self.observation_space = spaces.Box(0, 1, [size,size,16], dtype=int)
+        else:
+            self.observation_space = spaces.Box(0, 16, [size,size], dtype=int)
 
         self.seed()
         self.reset()
@@ -92,6 +101,14 @@ class Text2048Env(gym.Env):
     def _get_reward(self):
         return self.last_action_score
 
+    def _get_board(self):
+        if self._one_hot:
+            return np.ravel(np.eye(16, dtype=int)[self.board])
+        if self._cnn:
+            return (np.eye(16, dtype=int)[self.board])
+            # return self.board.reshape(self.size, self.size, 1)
+        return self.board
+
     def step(self, action):
         assert self.action_space.contains(action)
 
@@ -101,12 +118,14 @@ class Text2048Env(gym.Env):
         if changed or action_score > 0:
             self._compress(view)
             self._add_random_tile()
+        else:
+            return self._get_board(), -16, self.np_random.rand() < .01, {'score': self.score}
 
         self.last_action = action
         self.last_action_score = action_score
         self.score += action_score
 
-        return np.ravel(self.board), self._get_reward(), self._is_done(), {'score': self.score}
+        return self._get_board(), self._get_reward(), self._is_done(), {'score': self.score}
 
     def reset(self):
         self.score = 0
@@ -115,7 +134,7 @@ class Text2048Env(gym.Env):
         self.board = np.zeros((self.size, self.size), dtype=np.int8)
         self._add_random_tile()
         self._add_random_tile()
-        return np.ravel(self.board)
+        return self._get_board()
 
     def render(self, mode='human'):
         out = StringIO if mode == 'ansi' else sys.stdout

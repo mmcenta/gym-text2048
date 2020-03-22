@@ -9,8 +9,6 @@ from gym.utils import colorize, seeding
 import numpy as np
 from six import StringIO, b
 
-import tensorflow as tf
-
 logger = logging.getLogger(__name__)
 
 UP = 0

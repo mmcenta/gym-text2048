@@ -36,10 +36,16 @@ TILE_FORMAT = {
 class Text2048Env(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, size=4, one_hot=False, cnn=False):
+    def __init__(self, size=4, one_hot=False, cnn=False,
+                 invalid_move_penalty=-512, invalid_move_warmup=16,
+                 invalid_move_threshold=0.1):
         self.size = size
         self._one_hot = one_hot
         self._cnn = cnn
+
+        self._invalid_move_penalty = invalid_move_penalty
+        self._invalid_move_warmup = invalid_move_warmup
+        self._invalid_move_threshold = invalid_move_threshold
 
         self.action_space = spaces.Discrete(4)
         if one_hot:
@@ -111,6 +117,7 @@ class Text2048Env(gym.Env):
 
     def step(self, action):
         assert self.action_space.contains(action)
+        self._invalid_
 
         view = np.rot90(self.board, k=action)
         changed = self._compress(view)
@@ -119,8 +126,11 @@ class Text2048Env(gym.Env):
             self._compress(view)
             self._add_random_tile()
         else:
+            # Invalid move
             self._invalid_count += 1
-            return self._get_board(), -32, self._invalid_count >= 10, {'score': self.score}
+            done = (self._invalid_count > self._invalid_move_warmup and
+                    self._invalid_count > self._invalid_move_threshold * self._total_count)
+            return self._get_board(), self._invalid_move_penalty, done, {'score': self.score}
 
         self.last_action = action
         self.last_action_score = action_score
@@ -132,10 +142,10 @@ class Text2048Env(gym.Env):
         self.score = 0
         self.last_action = None
         self.last_action_score = 0
+        self._invalid_count, self._total_count = 0, 0
         self.board = np.zeros((self.size, self.size), dtype=np.int8)
         self._add_random_tile()
         self._add_random_tile()
-        self._invalid_count = 0
         return self._get_board()
 
     def render(self, mode='human'):

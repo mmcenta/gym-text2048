@@ -115,7 +115,7 @@ class Text2048Env(gym.Env):
 
     def step(self, action):
         assert self.action_space.contains(action)
-        self._invalid_
+        self._total_count += 1
 
         view = np.rot90(self.board, k=action)
         changed = self._compress(view)

@@ -48,7 +48,7 @@ class Text2048Env(gym.Env):
         if one_hot:
             self.observation_space = spaces.Box(0, 1, [size,size,16], dtype=int)
         else:
-            self.observation_space = spaces.Box(0, 16, [size,size], dtype=int)
+            self.observation_space = spaces.Box(0, 16, [size,size,1], dtype=int)
 
         self.seed()
         self.reset()
@@ -105,7 +105,7 @@ class Text2048Env(gym.Env):
     def _get_board(self):
         if self._one_hot:
             return np.eye(16, dtype=int)[self.board]
-        return self.board
+        return self.board.reshape(self.size, self.size, 1)
 
     def step(self, action):
         assert self.action_space.contains(action)

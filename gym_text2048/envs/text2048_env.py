@@ -162,3 +162,6 @@ class Text2048Env(gym.Env):
         if mode != 'human':
             with closing(out):
                 return out.getvalue()
+
+    def maximum_tile(self):
+        return np.max(self.board)

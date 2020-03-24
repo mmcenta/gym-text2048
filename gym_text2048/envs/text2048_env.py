@@ -34,12 +34,11 @@ TILE_FORMAT = {
 class Text2048Env(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, size=4, one_hot=False, cnn=False,
+    def __init__(self, size=4, one_hot=False,
                  invalid_move_penalty=-512, invalid_move_warmup=16,
                  invalid_move_threshold=0.1):
         self.size = size
         self._one_hot = one_hot
-        self._cnn = cnn
 
         self._invalid_move_penalty = invalid_move_penalty
         self._invalid_move_warmup = invalid_move_warmup
@@ -47,8 +46,6 @@ class Text2048Env(gym.Env):
 
         self.action_space = spaces.Discrete(4)
         if one_hot:
-            self.observation_space = spaces.MultiBinary(size*size*16)
-        elif cnn:
             self.observation_space = spaces.Box(0, 1, [size,size,16], dtype=int)
         else:
             self.observation_space = spaces.Box(0, 16, [size,size], dtype=int)
@@ -107,10 +104,7 @@ class Text2048Env(gym.Env):
 
     def _get_board(self):
         if self._one_hot:
-            return np.ravel(np.eye(16, dtype=int)[self.board])
-        if self._cnn:
-            return (np.eye(16, dtype=int)[self.board])
-            # return self.board.reshape(self.size, self.size, 1)
+            return np.eye(16, dtype=int)[self.board]
         return self.board
 
     def step(self, action):

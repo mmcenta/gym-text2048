@@ -36,7 +36,7 @@ class Text2048Env(gym.Env):
 
     def __init__(self, size=4, one_hot=True,
                  invalid_move_penalty=-512, invalid_move_warmup=16,
-                 invalid_move_threshold=0.1):
+                 invalid_move_threshold=0.1, seed=None):
         self.size = size
         self._one_hot = one_hot
 
@@ -50,7 +50,7 @@ class Text2048Env(gym.Env):
         else:
             self.observation_space = spaces.Box(0, 16, [size,size,1], dtype=int)
 
-        self.seed()
+        self.seed(seed)
         self.reset()
 
     def seed(self, seed=None):

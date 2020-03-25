@@ -34,7 +34,7 @@ TILE_FORMAT = {
 class Text2048Env(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, size=4, one_hot=False,
+    def __init__(self, size=4, one_hot=True,
                  invalid_move_penalty=-512, invalid_move_warmup=16,
                  invalid_move_threshold=0.1):
         self.size = size

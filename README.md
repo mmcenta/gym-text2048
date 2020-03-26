@@ -45,6 +45,8 @@ This repository includes the following examples under the directory `/examples`:
 * `play.py` which allows the user to play the game using the WASD keys;
 * `random_agent.py` which implements a random agent.
 
+We also have a example project, check out our [DQN agent implementation](https://github.com/mmcenta/left-shift)!
+
 ## Installation
 
 Installation can be done locally using `pip`, just download the repository's files and execute the following commands:
